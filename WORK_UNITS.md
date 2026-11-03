@@ -10,7 +10,7 @@
 | 01 | 프로젝트·저장소 준비 | 폴더 구조, venv, `.gitignore`, GitHub 저장소 | ✅ |
 | 02 | 근거 문서 수집·작성 | `docs/sources.md`, `docs/policy_modustay.md` | ✅ |
 | 03 | 카테고리 확정·매핑표 | `context.py` (파싱·매핑·도구) | ✅ |
-| 04 | 평가셋 작성 | `data/goldenset.json` | ⬜ |
+| 04 | 평가셋 작성 | `data/goldenset.json` | ✅ |
 | 05 | 프롬프트 작성 | `prompts.py` | ⬜ |
 | 06 | 기계적 검증기 | `verify.py` | ⬜ |
 | 07 | 파이프라인 구현 | `agent.py` | ⬜ |
@@ -81,13 +81,13 @@
 - `must_not`에는 문서를 안 읽었을 때 나오기 쉬운 그럴듯한 오답을 넣는다
 
 **완료조건**
-- [ ] 평가용 20건, 예시용 5건이고 질문이 서로 겹치지 않는다
-- [ ] 평가용의 카테고리별 개수가 3~5건 사이로 균형 잡혀 있다 (범위 밖 포함)
-- [ ] 넘기기가 정답인 문항이 **4건 이상** (범위 밖 `["handoff"]` + 문서에 답 없음 `["get_xxx","handoff"]` 둘 다 포함)
-- [ ] 모든 문항의 `must_include`·`must_not`이 비어 있지 않다
-- [ ] 모든 `expected_tools`가 실제 도구 이름(`get_booking` 등)만 쓴다
-- [ ] 각 `note`에 근거 조항 ID가 적혀 있고, 그 조항에 실제로 필수 사실이 있다
-- [ ] JSON 파싱 오류가 없다 (`python -c "import json; json.load(open('data/goldenset.json'))"`)
+- [x] 평가용 20건, 예시용 5건이고 질문이 서로 겹치지 않는다
+- [x] 평가용의 카테고리별 개수가 3~5건 사이로 균형 잡혀 있다 (범위 밖 포함)
+- [x] 넘기기가 정답인 문항이 **4건 이상** (범위 밖 `["handoff"]` + 문서에 답 없음 `["get_xxx","handoff"]` 둘 다 포함)
+- [x] 모든 문항의 `must_include`·`must_not`이 비어 있지 않다
+- [x] 모든 `expected_tools`가 실제 도구 이름(`get_booking` 등)만 쓴다
+- [x] 각 `note`에 근거 조항 ID가 적혀 있고, 그 조항에 실제로 필수 사실이 있다
+- [x] JSON 파싱 오류가 없다 (`python -c "import json; json.load(open('data/goldenset.json'))"`)
 
 ---
 
