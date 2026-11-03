@@ -144,7 +144,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--validate-grader", action="store_true")
     parser.add_argument("--tag", default="run")
+    parser.add_argument("--repeat", type=int, default=1, help="같은 설정을 여러 번 재서 변동 폭을 본다")
     args = parser.parse_args()
     if args.validate_grader:
         raise SystemExit(0 if validate_grader() else 1)
-    evaluate(args.tag)
+    summaries = [evaluate(args.tag if args.repeat == 1 else f"{args.tag}_r{i + 1}") for i in range(args.repeat)]
+    if args.repeat > 1:
+        for key in ["tool_accuracy", "answer_accuracy"]:
+            values = [s[key] for s in summaries]
+            print(f"{key}: 평균 {sum(values) / len(values):.3f}  범위 {min(values):.2f}~{max(values):.2f}  {values}")
