@@ -1,7 +1,8 @@
-"""두 지표 측정: 도구 호출 적절성 · 답변 적절성. --validate-grader로 채점기 자체를 먼저 검증한다.
+"""두 지표 측정: 도구 호출 적절성 · 답변 적절성 (+ 분류 정확도·macro F1). --validate-grader로 채점기 자체를 먼저 검증한다.
 
 python evaluate.py --validate-grader
 python evaluate.py --tag baseline
+python evaluate.py --metrics run_03 run_04   # 저장된 결과로 분류 지표·근거 검사를 다시 계산 (API 호출 없음)
 """
 
 import argparse
@@ -14,6 +15,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
 import prompts
+from context import CATEGORIES, CATEGORY_TOOL, OUT_OF_SCOPE, clauses_for
 
 load_dotenv()
 
@@ -63,6 +65,48 @@ def grade_answer(answer: str, item: dict) -> dict:
     complete = len(facts) == len(item["must_include"]) and len(violations) == len(item["must_not"])
     score = int(complete and all(f["included"] for f in facts) and not any(v["violated"] for v in violations))
     return {"answer_score": score, "facts": facts, "violations": violations, "grade_complete": complete}
+
+
+TOOL_CATEGORY = {t: c for c, t in CATEGORY_TOOL.items()}
+
+
+def expected_categories(row: dict) -> set[str]:
+    """기대 도구에서 기대 카테고리를 역산한다. 두 카테고리 문의(E03)는 2개."""
+    return {TOOL_CATEGORY[t] for t in row["expected_tools"] if t in TOOL_CATEGORY} or {OUT_OF_SCOPE}
+
+
+def classification_metrics(rows: list[dict]) -> dict:
+    """정확도 = 예측 카테고리 집합이 기대 집합과 정확히 같은 비율. F1은 카테고리별 일대다(one-vs-rest)."""
+    per_category = {}
+    for c in CATEGORIES:
+        tp = sum(c in expected_categories(r) and c in r["categories"] for r in rows)
+        fp = sum(c not in expected_categories(r) and c in r["categories"] for r in rows)
+        fn = sum(c in expected_categories(r) and c not in r["categories"] for r in rows)
+        precision = tp / (tp + fp) if tp + fp else 0.0
+        recall = tp / (tp + fn) if tp + fn else 0.0
+        f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+        per_category[c] = {"precision": precision, "recall": recall, "f1": f1, "tp": tp, "fp": fp, "fn": fn}
+    return {
+        "classification_accuracy": sum(expected_categories(r) == set(r["categories"]) for r in rows) / len(rows),
+        "macro_f1": sum(m["f1"] for m in per_category.values()) / len(per_category),
+        "per_category": per_category,
+    }
+
+
+def context_check(rows: list[dict]) -> list[str]:
+    """프롬프트에 들어간 근거가 판정된 카테고리의 조항과 정확히 같지 않은 문항 ID."""
+    bad = []
+    for r in rows:
+        allowed = {c["id"] for cat in r["categories"] if cat != OUT_OF_SCOPE for c in clauses_for(cat)}
+        if set(r["context_ids"]) != allowed:
+            bad.append(r["id"])
+    return bad
+
+
+def print_classification(metrics: dict) -> None:
+    print(f"분류 정확도: {metrics['classification_accuracy']:.3f}  |  macro F1: {metrics['macro_f1']:.3f}")
+    for c, m in metrics["per_category"].items():
+        print(f"  {c:8} P={m['precision']:.3f} R={m['recall']:.3f} F1={m['f1']:.3f}  (TP {m['tp']} FP {m['fp']} FN {m['fn']})")
 
 
 def _parallel(fn, items):
@@ -128,11 +172,13 @@ def evaluate(tag: str) -> dict:
         "n": len(rows),
         "tool_accuracy": sum(r["tool_score"] for r in rows) / len(rows),
         "answer_accuracy": sum(r["answer_score"] for r in rows) / len(rows),
+        **classification_metrics(rows),
     }
     path = next_run_path(tag)
     path.write_text(json.dumps({"summary": summary, "rows": rows}, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print(f"도구 호출 적절성: {summary['tool_accuracy']:.2f}  |  답변 적절성: {summary['answer_accuracy']:.2f}  →  {path.name}")
+    print_classification(summary)
     for r in rows:
         if not (r["tool_score"] and r["answer_score"]):
             print(f"  ✗ {r['id']} 도구={r['tool_score']} 답변={r['answer_score']}  "
@@ -145,9 +191,18 @@ if __name__ == "__main__":
     parser.add_argument("--validate-grader", action="store_true")
     parser.add_argument("--tag", default="run")
     parser.add_argument("--repeat", type=int, default=1, help="같은 설정을 여러 번 재서 변동 폭을 본다")
+    parser.add_argument("--metrics", nargs="+", metavar="RUN", help="저장된 결과(run_03 등)를 합쳐 분류 지표·근거 검사를 다시 계산")
     args = parser.parse_args()
     if args.validate_grader:
         raise SystemExit(0 if validate_grader() else 1)
+    if args.metrics:
+        rows = [r for run in args.metrics for path in RESULTS_DIR.glob(f"{run}_*.json")
+                for r in json.loads(path.read_text(encoding="utf-8"))["rows"]]
+        print(f"{' + '.join(args.metrics)}: {len(rows)}건")
+        print_classification(classification_metrics(rows))
+        bad = context_check(rows)
+        print(f"근거가 판정 카테고리 조항과 다른 문항: {len(bad)}건 {bad}")
+        raise SystemExit(0)
     summaries = [evaluate(args.tag if args.repeat == 1 else f"{args.tag}_r{i + 1}") for i in range(args.repeat)]
     if args.repeat > 1:
         for key in ["tool_accuracy", "answer_accuracy"]:
