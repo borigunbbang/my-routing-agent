@@ -13,7 +13,7 @@
 | 04 | 평가셋 작성 | `data/goldenset.json` | ✅ |
 | 05 | 프롬프트 작성 | `prompts.py` | ✅ |
 | 06 | 기계적 검증기 | `verify.py` | ✅ |
-| 07 | 파이프라인 구현 | `agent.py` | ⬜ |
+| 07 | 파이프라인 구현 | `agent.py` | ✅ |
 | 08 | 채점기 구현·검증 | `evaluate.py` (채점·검증 모드) | ⬜ |
 | 09 | 기준 측정·오답 분석 | `results/run_01_baseline.json`, 오답 분석 메모 | ⬜ |
 | 10 | 개선 반복 | `results/run_02~`, 개선 기록표 | ⬜ |
@@ -126,13 +126,13 @@
 - `agent.py`: `AgentState`, 노드 6개(`classify`, `retrieve`, `gate`, `answer`, `verify`, `handoff`), 조건부 엣지, `run(question) -> dict`
 
 **완료조건**
-- [ ] TECH_SPEC 6절 그래프와 노드·엣지가 일치한다 (`graph.get_graph().draw_mermaid()` 출력으로 확인)
-- [ ] 범위 밖 질문 1건 → `tools_called == ["handoff"]`, 고정 문구 응답
-- [ ] 카테고리는 맞지만 문서에 답 없는 질문 1건 → `["get_xxx", "handoff"]`
-- [ ] 정상 질문 1건 → 해당 도구만 호출, 인용 포함 답변, `verification.passed=True`
-- [ ] 검증 실패 시 재생성은 최대 1회이고, 이후 handoff로 간다 (일부러 실패를 유도해 확인)
-- [ ] 프롬프트에 들어간 근거가 판정 카테고리의 조항뿐이다 (로그로 확인)
-- [ ] `run()` 반환값에 `categories, tools_called, context, answerable, answer, verification, handoff`가 모두 있다
+- [x] TECH_SPEC 6절 그래프와 노드·엣지가 일치한다 (`graph.get_graph().draw_mermaid()` 출력으로 확인)
+- [x] 범위 밖 질문 1건 → `tools_called == ["handoff"]`, 고정 문구 응답
+- [x] 카테고리는 맞지만 문서에 답 없는 질문 1건 → `["get_xxx", "handoff"]`
+- [x] 정상 질문 1건 → 해당 도구만 호출, 인용 포함 답변, `verification.passed=True`
+- [x] 검증 실패 시 재생성은 최대 1회이고, 이후 handoff로 간다 (일부러 실패를 유도해 확인)
+- [x] 프롬프트에 들어간 근거가 판정 카테고리의 조항뿐이다 (로그로 확인)
+- [x] `run()` 반환값에 `categories, tools_called, context, answerable, answer, verification, handoff`가 모두 있다
 
 ---
 
