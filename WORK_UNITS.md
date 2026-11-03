@@ -14,7 +14,7 @@
 | 05 | 프롬프트 작성 | `prompts.py` | ✅ |
 | 06 | 기계적 검증기 | `verify.py` | ✅ |
 | 07 | 파이프라인 구현 | `agent.py` | ✅ |
-| 08 | 채점기 구현·검증 | `evaluate.py` (채점·검증 모드) | ⬜ |
+| 08 | 채점기 구현·검증 | `evaluate.py` (채점·검증 모드) | ✅ |
 | 09 | 기준 측정·오답 분석 | `results/run_01_baseline.json`, 오답 분석 메모 | ⬜ |
 | 10 | 개선 반복 | `results/run_02~`, 개선 기록표 | ⬜ |
 | 11 | 데모 | `app.py`, 화면 캡처 | ⬜ |
@@ -142,11 +142,11 @@
 - `evaluate.py`: 도구 호출 적절성(집합 비교), 답변 적절성(LLM 채점, 구조화 출력), `--validate-grader` 모드, 결과 JSON 저장
 
 **완료조건**
-- [ ] `--validate-grader`: `reference_answer` 20건이 **20/20** 1점
-- [ ] 일부러 틀린 답(사실 누락·금지 표현) 5건 이상이 **전부** 0점
-- [ ] 채점 결과에 항목별 `included/violated`와 근거(evidence)가 남는다
-- [ ] 도구 적절성 계산이 순서와 무관한 집합 비교다
-- [ ] 결과가 `results/run_<번호>_<태그>.json`으로 저장된다
+- [x] `--validate-grader`: `reference_answer` 20건이 **20/20** 1점
+- [x] 일부러 틀린 답(사실 누락·금지 표현) 5건 이상이 **전부** 0점
+- [x] 채점 결과에 항목별 `included/violated`와 근거(evidence)가 남는다
+- [x] 도구 적절성 계산이 순서와 무관한 집합 비교다
+- [x] 결과가 `results/run_<번호>_<태그>.json`으로 저장된다 (저장 코드 구현, 실제 저장은 WU-09 첫 실행에서 확인)
 
 ---
 
