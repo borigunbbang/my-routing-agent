@@ -60,7 +60,7 @@
 
 - [x] `docs/` · `data/goldenset.json` · `prompts.py` · `context.py` · `agent.py` · `evaluate.py` · `app.py` · `requirements.txt` · `REPORT.md` (+ `verify.py`)
 - [x] 기획 문서: `PRD.md` · `TECH_SPEC.md` · `WORK_UNITS.md` · `FINAL_CHECKLIST.md`
-- [x] `results/`에 측정 회차별 결과 JSON — run_01~09
+- [x] `results/`에 측정 회차별 결과 JSON — run_01~10
 - [x] 새로 clone한 폴더에서 실행 방법대로 설치·평가·데모가 동작한다 — 설치 · `verify.py` · `agent.py` 확인 (평가·데모는 원본 폴더에서 같은 코드로 확인)
 
 ## 9. REPORT.md 7개 항목
